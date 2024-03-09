@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moka.dao.ImageCaseMapper">
+    <sql id="Base_column">
+        id
+        ,title, code, step_expect,type,level,precondition,remark,tester_id,module_id,create_time,update_time,original_case_id
+    </sql>
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO moka_case_image
+        ( <include refid="Base_column"></include>)
+        VALUES
+        <foreach collection="caseList" item="case" separator=",">
+            (#{case.id},#{case.title},#{case.code},
+            #{case.stepExpect,jdbcType=ARRAY,typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},#{case.type},
+            #{case.level},#{case.precondition},#{case.remark},
+            #{case.testerId},#{case.moduleId},#{case.createTime},#{case.updateTime},#{case.originalCaseId})
+        </foreach>
+    </insert>
+    <update id="batchDelete">
+        UPDATE  moka_case_image SET is_delete = 1 WHERE id IN (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+    </update>
+    <select id="selectByOriginalCaseId" resultType="com.pp.entity.CaseImageEntity">
+        SELECT
+        <include refid="Base_column"></include>
+        FROM moka_case_image
+        <where>
+            original_case_id = #{originalCaseId}
+        </where>
+    </select>
+    <select id="selectBatchByIds" resultType="com.pp.entity.CaseImageEntity" parameterType="java.util.List">
+        SELECT
+        <include refid="Base_column"></include>
+        FROM moka_case_image
+        <where>
+            id IN
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            and is_delete = 0
+        </where>
+    </select>
+    <update id="deleteByOriginalCaseId">
+        UPDATE moka_case_image SET is_delete = 1
+        <where>
+            original_case_id = #{originalCaseId}
+        </where>
+    </update>
+
+    <update id="batchDeleteByOriginalCaseId" parameterType="java.util.List">
+        <foreach collection="ids" item="id" separator=";">
+            update
+            moka_case_image
+            <set>
+                is_delete=1
+            </set>
+            where original_case_id=#{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateByOriginalCaseId" parameterType="java.util.List">
+        <foreach collection="caseList" item="case" separator=";">
+            update
+            moka_case_image
+            <set>
+                <if test="case.title!=null">
+                    title=#{case.title},
+                </if>
+                <if test="case.stepExpect!=null">
+                    step_expect=#{case.stepExpect,jdbcType=ARRAY,typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+                </if>
+                <if test="case.type!=null">
+                    `type`=#{case.type},
+                </if>
+                <if test="case.level!=null">
+                    `level`=#{case.level},
+                </if>
+                <if test="case.precondition!=null">
+                    precondition=#{case.precondition},
+                </if>
+                <if test="case.remark!=null">
+                    remark=#{case.remark}
+                </if>
+            </set>
+            where original_case_id=#{case.originalCaseId}
+        </foreach>
+    </update>
+
+    <update id="deleteImageCaseByModuleId">
+        update moka_case_image
+        set is_delete = 1
+            where module_id=#{moduleId}
+    </update>
+</mapper>

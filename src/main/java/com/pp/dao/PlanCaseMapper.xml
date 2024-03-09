@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moka.dao.PlanCaseMapper">
+    <resultMap id="planCaseEntity" type="com.pp.entity.PlanCaseEntity">
+        <result property="id" column="id"/>
+        <result property="planId" column="plan_id"/>
+        <result property="caseImageId" column="case_image_id"/>
+        <result property="isExecute" column="is_execute"/>
+        <result property="executeName" column="execute_name"/>
+        <result property="executeTime" column="execute_time"/>
+        <result property="isPass" column="is_pass"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="ownerId" column="owner_id"/>
+    </resultMap>
+    <sql id="Base_column">
+        id
+        ,plan_id, case_image_id,is_execute,execute_name,execute_time,is_pass,create_time,update_time,owner_id,case_remark
+    </sql>
+ <sql id="List_Base_Column">
+     mpc.id,mpc.plan_id, mpc.case_image_id,mpc.is_execute,mpc.execute_name,mpc.execute_time,mpc.is_pass,mpc.create_time,mpc.update_time,mpc.owner_id,mpc.case_remark
+    </sql>
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO moka_plan_case
+        ( <include refid="Base_column"></include>)
+        VALUES
+        <foreach collection="planCaseList" item="planCase" separator=",">
+            (#{planCase.id},#{planCase.planId}, #{planCase.caseImageId},
+            #{planCase.isExecute},#{planCase.executeName},#{planCase.executeTime},#{planCase.isPass},#{planCase.createTime},#{planCase.updateTime},#{planCase.ownerId},#{planCase.caseRemark})
+        </foreach>
+    </insert>
+    <update id="updatePlanCaseByCaseImageId">
+        UPDATE moka_plan_case
+        <set>
+            is_execute=#{isExecute},
+            <if test="executeTime!=null">
+                execute_time=#{executeTime},
+            </if>
+            <if test="executeName!=null">
+                execute_name=#{executeName},
+            </if>
+            <if test="updateTime!=null">
+                update_time=#{updateTime},
+            </if>
+
+            is_pass=#{isPass},
+        </set>
+        <where>
+            plan_id=#{planId} AND case_image_id=#{caseImageId}
+        </where>
+    </update>
+    <update id="batchUpdatePlanCaseByCaseImageIds" parameterType="java.util.List">
+        <foreach collection="planCaseEntityList" item="planCase" separator=";">
+            UPDATE moka_plan_case
+            <set>
+                <if test="planCase.isExecute!=null">
+                    is_execute=#{planCase.isExecute},
+                </if>
+                <if test="planCase.executeTime!=null">
+                    execute_time=#{planCase.executeTime},
+                </if>
+                <if test="planCase.isPass!=null">
+                    is_pass=#{planCase.isPass},
+                </if>
+                <if test="planCase.executeName!=null">
+                    execute_name=#{planCase.executeName},
+                </if>
+            </set>
+            <where>
+                plan_id=#{planCase.planId} AND case_image_id=#{planCase.caseImageId}
+            </where>
+        </foreach>
+    </update>
+    <select id="selectByTestPlanId" resultType="com.pp.entity.PlanCaseEntity">
+        SELECT
+        <include refid="Base_column"></include>
+        FROM moka_plan_case
+        <where>
+            plan_id = #{planId} AND is_delete = 0
+        </where>
+    </select>
+    <select id="planCasePageLists" resultType="com.pp.entity.PlanCaseEntity">
+        SELECT
+        <include refid="List_Base_Column"></include>
+        FROM moka_plan_case as mpc left join moka_case_image as mci on mpc.case_image_id = mci.id
+        <where>
+            <if test="planCaseQuery.title != null">
+                AND mci.title like CONCAT(#{planCaseQuery.title},'%')
+            </if>
+            <if test="planCaseQuery.level != null">
+                AND mci.level = #{planCaseQuery.level}
+            </if>
+            <if test="planCaseQuery.level != null">
+                AND mpc.isPass = #{planCaseQuery.isPass}
+            </if>
+            AND mpc.plan_id = #{planCaseQuery.planId}
+            AND mpc.is_delete = 0
+            AND mci.is_delete = 0
+        </where>
+    </select>
+    <update id="deleteByPlanId">
+        UPDATE moka_plan_case
+        SET is_delete = 1
+        <where>
+            plan_id = #{planId}
+        </where>
+    </update>
+    <update id="deleteByCaseImageId">
+        UPDATE moka_plan_case SET is_delete = 1
+        <where>
+            case_image_id = #{caseImageId}
+        </where>
+    </update>
+
+    <select id="getCountByPlan" resultType="java.lang.Integer">
+        select count(*)
+        FROM moka_plan_case
+        <where>
+            plan_id = #{planId} AND is_delete = 0
+        </where>
+    </select>
+
+
+    <update id="updateOwnerId">
+        update moka_plan_case
+        set owner_id = #{id}
+            where case_image_id=#{originalCaseId} and is_delete=0
+    </update>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moka.dao.ModuleMapper">
+
+
+    <sql id="Base_Column_List">
+        id,`name`,`code`,parent_id,create_time,update_time
+    </sql>
+
+    <select id="selectAllModule" resultType="com.pp.entity.ModuleEntity">
+        select
+        <include refid="Base_Column_List"/>
+        from moka_module
+        <where>
+            is_delete = 0
+        </where>
+    </select>
+    <update id="updateBatchById" parameterType="java.util.List">
+        <foreach collection="moduleList" item="module" separator=";">
+            update moka_module
+            <set>
+                <if test="module.name!=null">
+                    name=#{module.name}
+                </if>
+            </set>
+            <where>
+                id = #{module.id}
+            </where>
+        </foreach>
+    </update>
+
+    <select id="selectModulesByIds" resultType="com.pp.entity.ModuleEntity" parameterType="java.util.List">
+        SELECT
+        <include refid="Base_Column_List"></include>
+        FROM moka_module
+        <where>
+            id IN
+            <foreach collection="ModulesIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            and is_delete = 0
+        </where>
+    </select>
+
+
+    <select id="selectOneParentId" resultType="com.pp.entity.ModuleEntity">
+        select
+        <include refid="Base_Column_List"/>
+        from moka_module
+        <where>
+             id=#{id}
+        </where>
+    </select>
+</mapper>

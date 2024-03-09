@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moka.dao.CaseMapper">
+
+    <resultMap id="caseEntity" type="com.pp.entity.CaseEntity">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="code" column="code"/>
+        <result property="stepExpect" column="step_expect"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="type" column="type"/>
+        <result property="level" column="level"/>
+        <result property="precondition" column="precondition"/>
+        <result property="testerId" column="tester_id"/>
+        <result property="moduleId" column="module_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    <sql id="Base_column">
+        id
+        ,title, code, step_expect,`type`,`level`,precondition,remark,tester_id,module_id,create_time,update_time
+    </sql>
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO moka_case
+        ( <include refid="Base_column"></include>)
+        VALUES
+        <foreach collection="caseList" item="case" separator=",">
+            (#{case.id},#{case.title}, #{case.code},
+            #{case.stepExpect,jdbcType=ARRAY,typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},#{case.type},
+            #{case.level},#{case.precondition},#{case.remark},
+            #{case.testerId},#{case.moduleId},#{case.createTime},#{case.updateTime})
+        </foreach>
+    </insert>
+
+
+    <select id="selectPageList" resultType="com.pp.entity.CaseEntity" resultMap="caseEntity">
+        select
+        <include refid="Base_column"/>
+        from moka_case
+        <where>
+            module_id in
+            <foreach collection="moduleIdList" item="moduleId" open="(" separator="," close=")">
+                #{moduleId}
+            </foreach>
+
+            <if test="CaseQuery.title!=null and CaseQuery.title!=''">
+                and `title` like "%${CaseQuery.title}%"
+            </if>
+            <if test="CaseQuery.creatorId!=null">
+                and tester_id = #{CaseQuery.testerId}
+            </if>
+            <if test="CaseQuery.level!=null">
+                and `level` = #{CaseQuery.level}
+            </if>
+            <if test="CaseQuery.type!=null">
+                and `type` = #{CaseQuery.type}
+            </if>
+            and is_delete = 0
+        </where>
+    </select>
+
+    <select id="selectByModuleId" resultType="com.pp.entity.CaseEntity" resultMap="caseEntity">
+        select
+        <include refid="Base_column"/>
+        from moka_case
+        <where>
+            module_id = #{moduleId} and is_delete = 0
+        </where>
+    </select>
+    <select id="selectByModuleIds" resultType="com.pp.entity.CaseEntity" parameterType="java.util.List" resultMap="caseEntity">
+        select
+        <include refid="Base_column"/>
+        from moka_case
+        <where>
+            module_id in
+            <foreach collection="moduleIdList" item="moduleId" open="(" separator="," close=")">
+                #{moduleId}
+            </foreach>
+            and is_delete = 0
+        </where>
+        order by create_time desc
+    </select>
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        <foreach collection="caseList" item="case" separator=";">
+            update
+            moka_case
+            <set>
+                <if test="case.title!=null">
+                    title=#{case.title},
+                </if>
+                <if test="case.stepExpect!=null">
+                    step_expect=#{case.stepExpect,jdbcType=ARRAY,typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+                </if>
+                <if test="case.type!=null">
+                    `type`=#{case.type},
+                </if>
+                <if test="case.level!=null">
+                    `level`=#{case.level},
+                </if>
+                <if test="case.precondition!=null">
+                    precondition=#{case.precondition},
+                </if>
+                <if test="case.remark!=null">
+                    remark=#{case.remark}
+                </if>
+            </set>
+            where id=#{case.id}
+        </foreach>
+    </update>
+
+    <update id="deleteCaseByModuleId">
+        update moka_case
+        set is_delete = 1
+        where module_id=#{moduleId}
+    </update>
+
+
+
+    <select id="selectByCaseId" resultType="com.pp.entity.CaseEntity">
+        select
+        <include refid="Base_column"/>
+        from moka_case
+        <where>
+            id=#{id}
+            and is_delete = 0
+        </where>
+        order by create_time desc
+    </select>
+</mapper>

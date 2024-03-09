@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pp.dao.PlanCaseRecordMapper">
+    <sql id="Base_column">
+        id,plan_id,case_image_id,is_execute,execute_time,is_pass,execute_name,`execute_role`,create_time,update_time
+    </sql>
+    <insert id="batchInsertPlanCaseRecord" parameterType="java.util.List">
+        INSERT INTO pp_plan_case_records
+        ( <include refid="Base_column"></include>)
+        VALUES
+        <foreach collection="planCaseList" item="caseRecord" separator=",">
+            (#{caseRecord.id},#{caseRecord.planId},#{caseRecord.caseImageId},
+            #{caseRecord.isExecute},#{caseRecord.executeTime},#{caseRecord.isPass},
+            #{caseRecord.executeName},#{caseRecord.executeRole},#{caseRecord.createTime},
+            #{caseRecord.updateTime})
+        </foreach>
+    </insert>
+    <select id="searchPlanCaseRecordsByPlanId" resultType="com.pp.entity.PlanCaseRecordsEntity">
+        select
+        <include refid="Base_column"/>
+        from pp_plan_case_records
+        <where>
+            plan_id = #{planId}
+            and is_delete = 0
+        </where>
+        order by create_time desc
+    </select>
+</mapper>
